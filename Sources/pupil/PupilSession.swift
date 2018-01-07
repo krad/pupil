@@ -36,7 +36,12 @@ class PupilSession {
     fileprivate var cloudManager: CloudManager
     fileprivate var uploadedFileCallback: (() -> Void)?
     
-    var broadcastID: String? { didSet { self.state = .streaming } }
+    var broadcastID: String? {
+        didSet {
+            self.state = .streaming
+            self.setupThumbnailer()
+        }
+    }
     
     /// FIXME: Queue name needs to be unique for multiple sessions
     fileprivate let sessionQueue = DispatchQueue(label: "session.q",
@@ -51,7 +56,6 @@ class PupilSession {
         self.root           = root
         self.state          = .starting
         self.cloudManager   = try CloudManager()
-        self.memento        = Memento(outputDir: root, delegate: self)
     }
     
     func read(into data: inout Data) throws -> Int {
@@ -111,7 +115,6 @@ class PupilSession {
     
     private func handleVideoPacket(_ packet: [UInt8]) {
         let sample = VideoSample(bytes: packet)
-        let delim: [UInt8] = [0x0, 0x0, 0x0, 0x1]
 
         if sample.isSync {
             if self.mementoKeyframeCnt == 15 {
@@ -122,12 +125,9 @@ class PupilSession {
                         self.memento?.set(sps: Array(sps[1..<sps.count]),
                                           pps: Array(pps[1..<pps.count]))
 
-                        var payload: [UInt8] = []
                         for nalu in sample.nalus {
-                            payload += delim + Array(nalu.data[4..<nalu.data.count])
+                            self.memento?.decode(keyframe: Array(nalu.data[4..<nalu.data.count]))
                         }
-                        
-                        self.memento?.decode(keyframe: payload)
                     }
                 }
                 
@@ -168,6 +168,12 @@ class PupilSession {
             writer.configure(settings: settings)
             writer.append(sample: sample, type: sample.type)
         }
+    }
+    
+    private func setupThumbnailer() {
+        guard let broadcastID = self.broadcastID else { return }
+        let thumbnailStorageURL = self.root.appendingPathComponent(broadcastID)
+        self.memento = Memento(outputDir: thumbnailStorageURL, delegate : self)
     }
     
     private func setupWriter(streamType: AVStreamType) {
