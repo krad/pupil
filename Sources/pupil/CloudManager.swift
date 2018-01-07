@@ -62,13 +62,24 @@ class CloudManager {
         let fileName      = urlComponents.popLast()!
         let broadcastID   = urlComponents.popLast()!
         let bucketKey     = "\(broadcastID)/\(fileName)"
-        print("[UPLOAD] - Starting  - ", bucketKey)
+        print("[UPLOAD] - Starting   - ", bucketKey)
         
         let data = try Data(contentsOf: atURL)
+    
+        
         var contentType = ""
-        if fileName == "out.m3u8" { contentType = "application/x-mpegURL" }
-        else { contentType = "video/mp4" }
-
+        if fileName.contains(substring: "m3u8") {
+            contentType = "application/x-mpegURL"
+        }
+        
+        if fileName.contains(substring: "mp4") {
+            contentType = "video/mp4"
+        }
+        
+        if fileName.contains(substring: "jpg") {
+            contentType = "image/jpeg"
+        }
+        
         let req = S3.PutObjectRequest(bucket: self.bucket,
                                       tagging: nil,
                                       contentDisposition: nil,
@@ -99,7 +110,7 @@ class CloudManager {
         
         _ = try self.client.putObject(req)
         
-        print("[UPLOAD] - Completed - ", bucketKey)
+        print("[UPLOAD]  - Completed   - ", bucketKey)
         
         if deleteAfterUpload {
             print("[CLEANUP] - Started   - ", atURL)

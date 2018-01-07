@@ -117,7 +117,7 @@ class PupilSession {
         let sample = VideoSample(bytes: packet)
 
         if sample.isSync {
-            if self.mementoKeyframeCnt == 15 {
+            if self.mementoKeyframeCnt == 5 {
                 if let sps = self.params?.first {
                     if let pps = self.params?.last {
                         
@@ -128,6 +128,8 @@ class PupilSession {
                         for nalu in sample.nalus {
                             self.memento?.decode(keyframe: Array(nalu.data[4..<nalu.data.count]))
                         }
+                        
+                        self.mementoKeyframeCnt = 0
                     }
                 }
                 
