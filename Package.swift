@@ -16,6 +16,12 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "pupil",
-            dependencies: ["Socket", "SwiftAWSS3", "morsel", "memento"]),
+            dependencies: ["pupilCore"]),
+	.target(
+	    name: "pupilCore",
+	    dependencies: ["Socket", "SwiftAWSS3", "morsel", "memento"]),
+	.testTarget(
+            name: "pupilTests",
+            dependencies: ["pupil"]),
     ]
 )

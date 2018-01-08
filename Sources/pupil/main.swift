@@ -2,6 +2,7 @@ import Foundation
 import Socket
 import Dispatch
 import morsel
+import pupilCore
 
 let port    = 40002
 let server  = PupilServer(port: port, root: URL(fileURLWithPath: "/opt/broadcasts"))

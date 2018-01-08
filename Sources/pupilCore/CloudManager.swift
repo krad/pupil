@@ -36,7 +36,10 @@ class CloudManager {
     func update(broadcast: String, with state: PupilSessionState) {
         print("Updating \(broadcast) state: \(state.rawValue)")
         let payload: [String: Any] = ["status": state.rawValue]
-        
+        self.update(broadcast: broadcast, with: payload)
+    }
+    
+    private func update(broadcast: String, with payload: [String: Any]) {
         do {
             if let url = URL(string: "https://staging.krad.tv/broadcasts/\(broadcast)") {
                 let payloadData    = try JSONSerialization.data(withJSONObject: payload,
@@ -54,7 +57,6 @@ class CloudManager {
         } catch let error {
             print("Couldn't update broadcast state: \(error.localizedDescription)")
         }
-        
     }
     
     func upload(file atURL: URL, deleteAfterUpload: Bool) throws {

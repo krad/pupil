@@ -3,7 +3,7 @@ import Socket
 import Dispatch
 import morsel
 
-class PupilServer {
+final public class PupilServer {
     
     static let hiResponse: String   = "HI\n"
     static let goResponse: String   = "BEGIN\n"
@@ -17,7 +17,7 @@ class PupilServer {
     
     private let root: URL
     
-    init(port: Int, root: URL = URL(fileURLWithPath: ".")) {
+    public init(port: Int, root: URL = URL(fileURLWithPath: ".")) {
         self.port = port
         self.root = root
     }
@@ -28,7 +28,7 @@ class PupilServer {
         self.listenSocket?.close()
     }
     
-    func run() {
+    public func run() {
         let queue = DispatchQueue.global(qos: .userInteractive)
         
         queue.async { [unowned self] in
@@ -62,7 +62,7 @@ class PupilServer {
         dispatchMain()
     }
     
-    func addNewConnection(socket: Socket) {
+    public func addNewConnection(socket: Socket) {
         do {
             let session = try PupilSession(socket: socket, root: self.root)
             
@@ -137,7 +137,7 @@ class PupilServer {
         } else { print("Error decoding response...") }
     }
     
-    func shutdownServer() {
+    public func shutdownServer() {
         print("\nShutdown in progress...")
         continueRunning = false
         
