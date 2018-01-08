@@ -15,6 +15,7 @@ class PupilSession {
     var state: PupilSessionState {
         didSet {
             guard let broadcastID = self.broadcastID else { return }
+            self.cloudManager.setup(with: broadcastID)
             self.cloudManager.update(broadcast: broadcastID, with: self.state)
         }
     }

@@ -36,7 +36,7 @@ class pupilTests: XCTestCase {
         let backBroadcast = try? jsonDecoder.decode(Broadcast.self, from: modifiedJSON!)
         XCTAssertNotNil(backBroadcast)
         XCTAssertNotNil(backBroadcast?.thumbnails)
-        XCTAssertEqual(backBroadcast?.thumbnails?.count, 4)        
+        XCTAssertEqual(backBroadcast?.thumbnails?.count, 4)
     }
     
 }

@@ -17,6 +17,7 @@ class CloudManager {
     
     private let sessionConfiguration = URLSessionConfiguration.default
     private let urlSession: URLSession
+    private var broadcast: Broadcast?
     
     init() throws {
         guard let region    = ProcessInfo.processInfo.environment[AWS_REGION_KEY],
@@ -33,30 +34,53 @@ class CloudManager {
         self.urlSession = URLSession(configuration:sessionConfiguration, delegate: nil, delegateQueue: nil)
     }
     
-    func update(broadcast: String, with state: PupilSessionState) {
-        print("Updating \(broadcast) state: \(state.rawValue)")
-        let payload: [String: Any] = ["status": state.rawValue]
-        self.update(broadcast: broadcast, with: payload)
+    func setup(with broadcastID: String) {
+        if let url = URL(string: "https://staging.krad.tv/broadcasts/\(broadcastID)") {
+            var request        = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            let task = self.urlSession.dataTask(with: request) {(data, resp, err) in
+                if let respData = data {
+                    do {
+                        let decoder    = JSONDecoder()
+                        self.broadcast = try decoder.decode(Broadcast.self, from: respData)
+                    } catch let err{
+                        print("[ERROR] - Couldn't get setup response from API", err)
+                    }
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    func update(broadcast: String, with data: Data) {
+        if let url = URL(string: "https://staging.krad.tv/broadcasts/\(broadcast)") {
+            var request        = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody   = data
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            let task = self.urlSession.dataTask(with: request) {(data, resp, err) in }
+            task.resume()
+        }
     }
     
     private func update(broadcast: String, with payload: [String: Any]) {
         do {
-            if let url = URL(string: "https://staging.krad.tv/broadcasts/\(broadcast)") {
-                let payloadData    = try JSONSerialization.data(withJSONObject: payload,
-                                                                options: .prettyPrinted)
-                var request        = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.httpBody   = payloadData
-                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-                request.addValue("application/json", forHTTPHeaderField: "Accept")
-                
-                let task = self.urlSession.dataTask(with: request) {(data, resp, err) in }
-                task.resume()
-            }
-            
+            let payloadData = try JSONSerialization.data(withJSONObject: payload,
+                                                         options: .prettyPrinted)
+            self.update(broadcast: broadcast, with: payloadData)
         } catch let error {
             print("Couldn't update broadcast state: \(error.localizedDescription)")
         }
+    }
+    
+    func update(broadcast: String, with state: PupilSessionState) {
+        print("Updating \(broadcast) state: \(state.rawValue)")
+        let payload: [String: Any] = ["status": state.rawValue]
+        self.update(broadcast: broadcast, with: payload)
     }
     
     func upload(file atURL: URL, deleteAfterUpload: Bool) throws {
@@ -64,6 +88,7 @@ class CloudManager {
         let fileName      = urlComponents.popLast()!
         let broadcastID   = urlComponents.popLast()!
         let bucketKey     = "\(broadcastID)/\(fileName)"
+        var isThumnail    = false
         print("[UPLOAD] - Starting   - ", bucketKey)
         
         let data = try Data(contentsOf: atURL)
@@ -80,6 +105,8 @@ class CloudManager {
         
         if fileName.contains(substring: "jpg") {
             contentType = "image/jpeg"
+            self.broadcast?.add(thumbnail: fileName)
+            isThumnail  = true
         }
         
         let req = S3.PutObjectRequest(bucket: self.bucket,
@@ -111,13 +138,26 @@ class CloudManager {
         
         
         _ = try self.client.putObject(req)
-        
         print("[UPLOAD]  - Completed   - ", bucketKey)
+        if isThumnail {
+            
+        }
         
         if deleteAfterUpload {
             print("[CLEANUP] - Started   - ", atURL)
             try FileManager.default.removeItem(at: atURL)
             print("[CLEANUP] - Completed - ", atURL)
+        }
+    }
+    
+    func updateThumbnails() {
+        guard let broadcast = self.broadcast else { return }
+        do {
+            let encoder     = JSONEncoder()
+            let jsonData    = try encoder.encode(broadcast)
+            self.update(broadcast: broadcast.broadcastID, with: jsonData)
+        } catch let err {
+            print("[ERROR] - Coudln't update thumbnails:", err)
         }
     }
 
