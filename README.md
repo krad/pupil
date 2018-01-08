@@ -8,8 +8,10 @@ If building with memento support the following dependencies need to be installed
 
   * libavcodec (57.107.100)
   * libavutil (55.78.100)
+  * libswscale (4.8.100)
+  * libswresample (2.9.100)
 
-Both of the above packages are available in ffmpeg release 3.4.1
+All of the above packages are available in ffmpeg release 3.4.1
 
 ## Roadmap
 
