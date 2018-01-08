@@ -40,13 +40,15 @@ class CloudManager {
             request.httpMethod = "GET"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
+            print("[SETUP] - GETTING BROADCAST DATA")
             let task = self.urlSession.dataTask(with: request) {(data, resp, err) in
                 if let respData = data {
                     do {
                         let decoder    = JSONDecoder()
                         self.broadcast = try decoder.decode(Broadcast.self, from: respData)
+                        print("[SETUP] - SUCCESS")
                     } catch let err{
-                        print("[ERROR] - Couldn't get setup response from API", err)
+                        print("[SETUP] - ERROR - Couldn't get setup response from API", err)
                     }
                 }
             }
@@ -88,7 +90,7 @@ class CloudManager {
         let fileName      = urlComponents.popLast()!
         let broadcastID   = urlComponents.popLast()!
         let bucketKey     = "\(broadcastID)/\(fileName)"
-        var isThumnail    = false
+        var isThumbNail    = false
         print("[UPLOAD] - Starting   - ", bucketKey)
         
         let data = try Data(contentsOf: atURL)
@@ -106,7 +108,7 @@ class CloudManager {
         if fileName.contains(substring: "jpg") {
             contentType = "image/jpeg"
             self.broadcast?.add(thumbnail: fileName)
-            isThumnail  = true
+            isThumbNail  = true
         }
         
         let req = S3.PutObjectRequest(bucket: self.bucket,
@@ -139,9 +141,7 @@ class CloudManager {
         
         _ = try self.client.putObject(req)
         print("[UPLOAD]  - Completed   - ", bucketKey)
-        if isThumnail {
-            
-        }
+        if isThumbNail { self.updateThumbnails() }
         
         if deleteAfterUpload {
             print("[CLEANUP] - Started   - ", atURL)
