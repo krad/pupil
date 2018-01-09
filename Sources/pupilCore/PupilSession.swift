@@ -32,7 +32,7 @@ class PupilSession {
     private var streamType: AVStreamType?
     
     private var memento: Memento?
-    private var mementoKeyframeCnt = 0
+    private var mementoKeyframeCnt = -1
     
     fileprivate var cloudManager: CloudManager
     fileprivate var uploadedFileCallback: (() -> Void)?
@@ -118,7 +118,7 @@ class PupilSession {
         let sample = VideoSample(bytes: packet)
 
         if sample.isSync {
-            if self.mementoKeyframeCnt == 5 {
+            if self.mementoKeyframeCnt == 30 || self.mementoKeyframeCnt == -1 {
                 if let sps = self.params?.first {
                     if let pps = self.params?.last {
                         
