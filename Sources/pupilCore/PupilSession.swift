@@ -32,7 +32,7 @@ class PupilSession {
     private var streamType: AVStreamType?
     
     private var memento: Memento?
-    private var mementoKeyframeCnt = -1
+    private var mementoKeyframeCnt = 0
     
     fileprivate var cloudManager: CloudManager
     fileprivate var uploadedFileCallback: (() -> Void)?
@@ -85,7 +85,8 @@ class PupilSession {
                     case 0x70:
                         // Got a params (sps/pps) packet
                         print("Got sps/pps packet", packet)
-                        self.params = packet.split(separator: 0x70).map { Array($0) }
+                        self.params = packet.split(separator: 0x70).map { Array($0[1..<$0.count]) }
+                        print("Setting params as", self.params as [[UInt8]]!)
                     case 0x71:
                         // Got a video dimensions packet
                         print("Got video dimensions packet")
@@ -118,7 +119,7 @@ class PupilSession {
         let sample = VideoSample(bytes: packet)
 
         if sample.isSync {
-            if self.mementoKeyframeCnt == 30 || self.mementoKeyframeCnt == -1 {
+            if self.mementoKeyframeCnt == 5 {
                 if let sps = self.params?.first {
                     if let pps = self.params?.last {
                         
