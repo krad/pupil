@@ -85,7 +85,7 @@ class PupilSession {
                     case 0x70:
                         // Got a params (sps/pps) packet
                         print("Got sps/pps packet", packet)
-                        self.params = packet.split(separator: 0x70).map { Array(Array($0)[1..<$0.count]) }
+                        self.params = packet.split(separator: 0x70).map { Array($0) }
                         print("Setting params as", self.params as [[UInt8]]!)
                     case 0x71:
                         // Got a video dimensions packet
@@ -123,7 +123,10 @@ class PupilSession {
                 if let sps = self.params?.first {
                     if let pps = self.params?.last {
                         
-                        self.memento?.set(sps: sps, pps: pps)
+                        // FIXME: Figure out wtf Apple is doing with their SPS/PPS info
+                        self.memento?.set(sps: Array(sps[1..<sps.count]),
+                                          pps: Array(pps[1..<pps.count]))
+                        
                         for nalu in sample.nalus {
                             self.memento?.decode(keyframe: Array(nalu.data[4..<nalu.data.count]))
                         }
