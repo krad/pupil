@@ -123,10 +123,7 @@ class PupilSession {
                 if let sps = self.params?.first {
                     if let pps = self.params?.last {
                         
-                        // FIXME: How does this even work?!
-                        self.memento?.set(sps: Array(sps[1..<sps.count]),
-                                          pps: Array(pps[1..<pps.count]))
-
+                        self.memento?.set(sps: sps, pps: pps)
                         for nalu in sample.nalus {
                             self.memento?.decode(keyframe: Array(nalu.data[4..<nalu.data.count]))
                         }
