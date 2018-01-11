@@ -86,6 +86,8 @@ class PupilSession {
                         // Got a params (sps/pps) packet
                         print("Got sps/pps packet", packet)
                         self.params = packet.split(separator: 0x70).map { Array($0) }
+                        self.params![0][0] = 0x67
+                        self.params![1][0] = 0x68
                         print("Setting params as", self.params as [[UInt8]]!)
                     case 0x71:
                         // Got a video dimensions packet
