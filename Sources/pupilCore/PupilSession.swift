@@ -39,8 +39,11 @@ class PupilSession {
     
     var broadcastID: String? {
         didSet {
-            self.state = .streaming
-            self.setupThumbnailer()
+            if let bid = broadcastID {
+                print("[SETUP] - GOT BROADCAST ID - STREAM STARTING - ", bid)
+                self.state = .streaming
+                self.setupThumbnailer()
+            }
         }
     }
     
@@ -74,6 +77,7 @@ class PupilSession {
             else {
                 let packet   = self.buffer[4..<Int(length)]
                 let typeByte = packet[4]
+                
                 if let sampleType = AVSampleType(rawValue: typeByte) {
                     switch sampleType {
                     case .video: self.handleVideoPacket(Array(packet))
@@ -86,8 +90,6 @@ class PupilSession {
                         // Got a params (sps/pps) packet
                         print("Got sps/pps packet", packet)
                         self.params = packet.split(separator: 0x70).map { Array($0) }
-                        self.params![0][0] = 0x67
-                        self.params![1][0] = 0x68
                         print("Setting params as", self.params as [[UInt8]]!)
                     case 0x71:
                         // Got a video dimensions packet
@@ -146,6 +148,7 @@ class PupilSession {
             if let dimensions = self.dimensions {
                 
                 if let writer = self.writer {
+                    
                     let settings = VideoSettings(params: params,
                                                  dimensions: dimensions,
                                                  timescale: sample.timescale)
@@ -190,13 +193,31 @@ class PupilSession {
                                                     withIntermediateDirectories: true,
                                                     attributes: nil)
             
+            print("Setting up writer...")
             self.writer = try FragmentedMP4Writer(streamStorageURL,
                                                   targetDuration: 6.0,
-                                                  playlistType: .vod,
                                                   streamType: streamType,
                                                   delegate: self)
+            
+            do {
+                
+                print("Creating playlists...")
+                let vodPlaylist     = Playlist(type: .hls_vod, fileName: "vod.m3u8")
+                let eventPlaylist   = Playlist(type: .hls_event, fileName: "event.m3u8")
+                let livePlaylist    = Playlist(type: .hls_live, fileName: "live.m3u8")
+                
+                try self.writer?.add(playlist: vodPlaylist)
+                try self.writer?.add(playlist: eventPlaylist)
+                try self.writer?.add(playlist: livePlaylist)
+                
+            } catch let error {
+                print("Error configuring playlist:", error)
+            }
+            
         }
         catch let error { print("Could not setup mp4 writer", error.localizedDescription) }
+        
+        print("Writer configured.")
     }
     
     func close(onComplete: @escaping (Socket) -> Void) {
@@ -208,9 +229,10 @@ class PupilSession {
     
 }
 
-extension PupilSession: FragmentedMP4WriterDelegate {
+extension PupilSession: FileWriterDelegate {
     
     func wroteFile(at url: URL) {
+        print(#function, url)
         self.sessionQueue.async {
             do {
                 try self.cloudManager.upload(file: url, deleteAfterUpload: true)
@@ -224,6 +246,7 @@ extension PupilSession: FragmentedMP4WriterDelegate {
     }
     
     func updatedFile(at url: URL) {
+        print(#function, url)
         self.sessionQueue.async {
             do {
                 try self.cloudManager.upload(file: url, deleteAfterUpload: false)
@@ -241,6 +264,7 @@ extension PupilSession: FragmentedMP4WriterDelegate {
 extension PupilSession: MementoProtocol {
     
     func wroteJPEG(to url: URL) {
+        print(#function, url)
         self.sessionQueue.async {
             do {
                 try self.cloudManager.upload(file: url, deleteAfterUpload: true)
