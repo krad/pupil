@@ -29,9 +29,7 @@ class SessionTests: XCTestCase {
             return 0
         }
         
-        func close() {
-            
-        }
+        func close() { }
     }
     
     class MockDelegate: SessionDelegate {
@@ -43,7 +41,9 @@ class SessionTests: XCTestCase {
         let delegate    = MockDelegate()
         
         socket.writeExp = self.expectation(description: "Should get the 'HI' message")
-        let session     = try? PSession(socket: socket, delegate: delegate)
+        let session     = try? PSession(socket: socket,
+                                        root: URL(fileURLWithPath: NSTemporaryDirectory()),
+                                        delegate: delegate)
         XCTAssertNotNil(session)
         XCTAssertEqual(session?.mode, .text)
         

@@ -90,7 +90,9 @@ public class PupilServer: Server, SessionDelegate {
                 onStart?()
                 repeat {
                     let newSocket = try socket.acceptClientConnection()
-                    let session   = try PSession(socket: newSocket, delegate: self)
+                    let session   = try PSession(socket: newSocket,
+                                                 root: self.root,
+                                                 delegate: self)
                     self.connected(session)
                 } while self.continueRunning
             } catch let err {

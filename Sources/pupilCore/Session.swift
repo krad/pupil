@@ -6,12 +6,10 @@ public enum SessionMode {
 }
 
 public protocol Session {
-    init(socket: GenericSocket, delegate: SessionDelegate) throws
+    init(socket: GenericSocket, root: URL, delegate: SessionDelegate) throws
     var mode: SessionMode { get }
     var broadcastID: String? { get }
-    
     var hashValue: Int { get }
-    
     func stop()
 }
 
@@ -31,6 +29,9 @@ public class PSession: Session {
     
     public var mode: SessionMode
     public var broadcastID: String?
+    
+    private var avsession: AVSession?
+    private var root: URL
 
     public var hashValue: Int {
         if let c = self.client {
@@ -40,13 +41,17 @@ public class PSession: Session {
     }
     
     public required init(socket: GenericSocket,
+                         root: URL,
                          delegate: SessionDelegate) throws
     {
         self.delegate = delegate
+        self.root     = root
         self.mode     = .text
+        
         self.client   = PupilClient(socket: socket) { _ in
             self.delegate.disconnected(session: self)
         }
+        
         self.client?.onRead = self.read
         _ = try self.client?.write(ServerTextResponse.connect.rawValue)
     }
@@ -67,15 +72,15 @@ public class PSession: Session {
                                                         options: .regularExpression,
                                                           range: nil)
             
-            self.mode = .streaming
+            self.mode      = .streaming
+            self.avsession = try AVSession(broadcastID: self.broadcastID!, root: self.root)
             _ = try self.client?.write(ServerTextResponse.begin.rawValue)
         }
     }
     
     private func handle(bytes data: [UInt8]) {
-        
+        self.avsession?.read(data)
     }
-    
     
     public func stop() {
         self.client?.close()

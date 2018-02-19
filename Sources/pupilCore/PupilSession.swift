@@ -3,6 +3,7 @@ import Socket
 import morsel
 import memento
 import Dispatch
+import grip
 
 enum PupilSessionState: String {
     case starting  = "STARTING"
@@ -29,7 +30,7 @@ class PupilSession {
     private var dimensions: VideoDimensions?
     
     private var writer: FragmentedMP4Writer?
-    private var streamType: AVStreamType?
+    private var streamType: StreamType?
     
     private var memento: Memento?
     private var mementoKeyframeCnt = 0
@@ -78,7 +79,7 @@ class PupilSession {
                 let packet   = self.buffer[4..<Int(length)]
                 let typeByte = packet[4]
                 
-                if let sampleType = AVSampleType(rawValue: typeByte) {
+                if let sampleType = SampleType(rawValue: typeByte) {
                     switch sampleType {
                     case .video: self.handleVideoPacket(Array(packet))
                     case .audio: self.handleAudioPacket(Array(packet))
@@ -100,7 +101,7 @@ class PupilSession {
                     case 0x72:
                         // Got a stream type packet (are we audio+video, video only, audio only, etc)
                         print("Got stream type packet")
-                        if let streamType = AVStreamType.parse(Array(packet)) {
+                        if let streamType = StreamType.parse(Array(packet)) {
                             self.streamType = streamType
                             self.setupWriter(streamType: streamType)
                         }
@@ -185,7 +186,7 @@ class PupilSession {
         self.memento = Memento(outputDir: thumbnailStorageURL, delegate : self)
     }
     
-    private func setupWriter(streamType: AVStreamType) {
+    private func setupWriter(streamType: StreamType) {
         guard let broadcastID = self.broadcastID else { return }
         do {
             let streamStorageURL = self.root.appendingPathComponent(broadcastID)

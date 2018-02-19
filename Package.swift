@@ -8,7 +8,8 @@ let package = Package(
     dependencies: [
 	.package(url: "https://github.com/IBM-Swift/BlueSocket.git", from: "0.12.77"),
   	.package(url: "https://github.com/swift-aws/s3.git", .upToNextMajor(from: "1.0.0")),
-  	.package(url: "https://github.com/krad/morsel.git", from: "1.0.7"),
+  	.package(url: "https://github.com/krad/morsel.git", from: "1.1.1"),
+  	.package(url: "https://github.com/krad/grip.git", from: "1.0.3"),
   	.package(url: "https://github.com/krad/memento.git", from: "0.0.8")
     ],
     targets: [
