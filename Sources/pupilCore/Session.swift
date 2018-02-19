@@ -11,6 +11,8 @@ public protocol Session {
     var broadcastID: String? { get }
     
     var hashValue: Int { get }
+    
+    func stop()
 }
 
 public protocol SessionDelegate {
@@ -49,26 +51,34 @@ public class PSession: Session {
         _ = try self.client?.write(ServerTextResponse.connect.rawValue)
     }
     
-    func read(client: Client, data: Data) throws {
+    private func read(client: Client, data: Data) throws {
         switch self.mode {
         case .text:
             try self.handle(text: data)
         case .streaming:
-            _=0+0
+            self.handle(bytes: [UInt8](data))
         }
     }
     
-    func handle(text data: Data) throws {
+    private func handle(text data: Data) throws {
         if let response = String(data: data, encoding: .utf8) {
             self.broadcastID = response.replacingOccurrences(of: "\n",
                                                            with: "",
                                                         options: .regularExpression,
                                                           range: nil)
             
+            self.mode = .streaming
             _ = try self.client?.write(ServerTextResponse.begin.rawValue)
         }
     }
     
+    private func handle(bytes data: [UInt8]) {
+        
+    }
     
     
+    public func stop() {
+        self.client?.close()
+    }
+
 }

@@ -28,6 +28,10 @@ class SessionTests: XCTestCase {
             self.writeExp?.fulfill()
             return 0
         }
+        
+        func close() {
+            
+        }
     }
     
     class MockDelegate: SessionDelegate {
@@ -41,6 +45,7 @@ class SessionTests: XCTestCase {
         socket.writeExp = self.expectation(description: "Should get the 'HI' message")
         let session     = try? PSession(socket: socket, delegate: delegate)
         XCTAssertNotNil(session)
+        XCTAssertEqual(session?.mode, .text)
         
         /// Session should immediately send the connect message
         self.wait(for: [socket.writeExp!], timeout: 1)
@@ -65,6 +70,8 @@ class SessionTests: XCTestCase {
         let begin    = ServerTextResponse(rawValue: beginStr!)
         XCTAssertNotNil(begin)
         XCTAssertEqual(begin, ServerTextResponse.begin)
+        
+        XCTAssertEqual(session?.mode, .streaming)
 
     }
     

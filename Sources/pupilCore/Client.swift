@@ -10,7 +10,8 @@ public protocol Client {
     var socket: GenericSocket { get }
     var onRead: ClientReadCallback? { get set }
     
-    func write(_ string: String) throws -> Int
+    func write(_ string: String?) throws -> Int
+    func close()
 }
 
 func ==(lhs: Client, rhs: Client) -> Bool {
@@ -61,11 +62,16 @@ public class PupilClient: Client {
         }
     }
     
-    public func write(_ string: String) throws -> Int {
-        if let data = string.data(using: .utf8) {
+    public func write(_ string: String?) throws -> Int {
+        if let data = string?.data(using: .utf8) {
             return try self.socket.write(from: data)
         }
         
         throw ClientError.badString
+    }
+    
+    public func close() {
+        self.socket.close()
+        self.onClose?(self)
     }
 }

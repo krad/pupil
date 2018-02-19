@@ -41,7 +41,9 @@ public enum ServerTextResponse: String {
     case begin   = "BEGIN\n"
 }
 
-public class PServer: Server, SessionDelegate {
+public class PupilServer: Server, SessionDelegate {
+    
+    static let bufferSize = 4096
     
     public let port: Int32
     public let root: URL
@@ -57,7 +59,7 @@ public class PServer: Server, SessionDelegate {
     internal var continueRunning = false
     
     private var listenQ = DispatchQueue.global(qos: .userInteractive)
-    private var lockQ   = DispatchQueue(label: "pupil.socketLockQ")
+    private var lockQ   = DispatchQueue(label: "pupil.server.socketLockQ")
     
     public required init(port: Int32, root: URL?) {
         self.port = port
@@ -111,6 +113,11 @@ public class PServer: Server, SessionDelegate {
     
     public func stop() {
         self.continueRunning = false
+        
+        for session in self.sessions {
+            session.stop()
+        }
+        
         self.listenSocket?.close()
     }
 }

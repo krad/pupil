@@ -7,14 +7,14 @@ class ServerTests: XCTestCase {
     func test_that_we_can_either_set_a_root_or_one_is_determined_for_us() {
         let port: Int32  = 3333
         let path         = URL(fileURLWithPath: NSTemporaryDirectory())
-        let server       = PServer(port: port, root: path)
+        let server       = PupilServer(port: port, root: path)
         XCTAssertNotNil(server)
         
         XCTAssertEqual(server.port, port)
         XCTAssertEqual(server.root, path)
         
         let cwd     = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        let server2 = PServer(port: port, root: nil)
+        let server2 = PupilServer(port: port, root: nil)
         XCTAssertNotNil(server2)
         XCTAssertEqual(server2.port, port)
         XCTAssertEqual(server2.root, cwd)
@@ -29,7 +29,7 @@ class ServerTests: XCTestCase {
     }
     
     func test_that_we_can_start_and_stop_the_server() {
-        let server = PServer(port: 3331, root: nil)
+        let server = PupilServer(port: 3331, root: nil)
         XCTAssertFalse(server.started)
 
         let e = self.expectation(description: "Connecting to a server")
@@ -47,7 +47,7 @@ class ServerTests: XCTestCase {
     func test_that_we_can_connect_to_a_running_server() {
         
         let port: Int32 = 3332
-        let server       = PServer(port: port, root: nil)
+        let server       = PupilServer(port: port, root: nil)
         
         let s = self.expectation(description: "Starting the server")
         XCTAssertNoThrow(try server.start {

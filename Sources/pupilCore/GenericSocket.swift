@@ -9,6 +9,7 @@ public protocol GenericSocket {
     
     func read(into data: inout Data) throws -> Int
     func write(from data: Data) throws -> Int
+    func close()
 }
 
 extension Socket: GenericSocket { }
