@@ -41,7 +41,7 @@ public class PupilClient: Client {
                                    target: nil)
         
         self.onClose = onClose
-        self.rwq.async {[unowned self] in self.mainReadLoop() }
+        self.rwq.async { self.mainReadLoop() }
     }
     
     private func mainReadLoop() {

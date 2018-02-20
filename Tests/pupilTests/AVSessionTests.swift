@@ -15,11 +15,8 @@ class AVSessionTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: expectedPath.path))
         
         XCTAssertNil(session?.streamType)
-        XCTAssertNil(session?.videoSettings)
-        XCTAssertNil(session?.videoDimensions)
-        XCTAssertNil(session?.videoParams)
         XCTAssertNil(session?.mediaWriter)
-        
+
         /// Test sending a StreamTypePacket
         let streamType       = StreamType.video
         let streamTypePacket = StreamTypePacket(streamType: streamType)
@@ -29,7 +26,10 @@ class AVSessionTests: XCTestCase {
         
         XCTAssertNotNil(session?.streamType)
         XCTAssertNotNil(session?.mediaWriter)
-        
+        XCTAssertNil(session?.mediaWriter?.videoSettings)
+        XCTAssertNil(session?.mediaWriter?.videoDimensions)
+        XCTAssertNil(session?.mediaWriter?.videoParams)
+
         /// Test sending a VideoParamSetPacket
         let paramsPacket = try? VideoParamSetPacket(params: [sps, pps])
         XCTAssertNotNil(paramsPacket)
@@ -37,7 +37,7 @@ class AVSessionTests: XCTestCase {
         XCTAssertNotNil(paramsBytes)
         session?.read(paramsBytes!)
         
-        XCTAssertNotNil(session?.videoParams)
+        XCTAssertNotNil(session?.mediaWriter?.videoParams)
         
         /// Test sending a video dimensions packet
         let dimensionsPacket = VideoDimensionPacket(width: 640, height: 480)
@@ -45,7 +45,13 @@ class AVSessionTests: XCTestCase {
         XCTAssertNotNil(dimensionBytes)
         session?.read(dimensionBytes!)
         
-        XCTAssertNotNil(session?.videoDimensions)
+        XCTAssertNotNil(session?.mediaWriter?.videoDimensions)
+        
+        /// Writer will stay unconfigured until we send actual video data
+        XCTAssertNil(session?.mediaWriter?.videoSettings)
+        session?.read(videoPayload)
+        XCTAssertNil(session?.mediaWriter?.videoSettings)
+
     }
     
 }

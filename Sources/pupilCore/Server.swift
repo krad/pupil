@@ -115,11 +115,7 @@ public class PupilServer: Server, SessionDelegate {
     
     public func stop() {
         self.continueRunning = false
-        
-        for session in self.sessions {
-            session.stop()
-        }
-        
+        self.sessions.forEach { $0.stop() }
         self.listenSocket?.close()
     }
 }

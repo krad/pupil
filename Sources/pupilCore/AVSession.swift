@@ -25,15 +25,6 @@ class AVSession {
     /// The object which is responsible for writing out media assets and playlists
     var mediaWriter: MediaWriter?
     
-    /// Settings used for video streams to configure the video writer
-    var videoSettings: VideoSettings?
-    
-    /// When we have a video stream, these are the dimensions of the picture
-    var videoDimensions: VideoDimensions?
-    
-    /// When we have a video stream this contains an array of btyes representing the Sequence Parameter set and the Picture Parameter set
-    var videoParams: [[UInt8]]?
-    
     /// An array of bytes from the stream.  Grows and shrinks based on what has / has not been processed
     var buffer: [UInt8] = []
     
@@ -133,9 +124,10 @@ class AVSession {
     ///   - type: An enum describing the type of packet being dealt with
     private func handle(packet: [UInt8], type: PacketType) {
         switch type {
-        case .streamType:      self.streamType      = StreamType.parse(packet)
-        case .videoDimensions: self.videoDimensions = VideoDimensions(from: packet)
-        case .videoParams:     self.videoParams     = packet.split(separator: type.rawValue).map { Array($0) }
+        case .streamType:      self.streamType                    = StreamType.parse(packet)
+        case .videoDimensions: self.mediaWriter?.videoDimensions  = VideoDimensions(from: packet)
+        case .videoParams:
+            self.mediaWriter?.videoParams = packet.split(separator: type.rawValue).map { Array($0) }
         }
     }
     
