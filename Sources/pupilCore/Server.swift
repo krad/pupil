@@ -115,7 +115,11 @@ public class PupilServer: Server, SessionDelegate {
     
     public func disconnected(session: Session) {
         Log.info("Disconnection from \(session.remoteHostname)")
-        self.lockQ.sync {[unowned self, session] in
+        self.remove(session: session)
+    }
+    
+    func remove(session: Session) {
+        self.lockQ.sync {
             if let idx = self.sessions.index(where: { $0 == session }) {
                 self.sessions.remove(at: idx)
             }

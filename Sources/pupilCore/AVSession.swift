@@ -169,4 +169,13 @@ class AVSession {
         }
     }
     
+    func stop(callback: (() -> Void)?) {
+        if let writer = self.mediaWriter {
+            writer.stop()
+            callback?()
+        } else {
+            callback?()
+        }
+    }
+    
 }

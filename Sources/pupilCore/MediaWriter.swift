@@ -38,20 +38,24 @@ class MediaWriter {
     
     fileprivate var cloud: CloudManager?
     
+    fileprivate var iFrameCnt: Int = Config.thumbnailInterval
+    
+    private let dispatchGroup = DispatchGroup()
+    
     init(streamType: StreamType,
          broadcastID: String,
          outputDir: URL) throws
     {
         self.broadcastID = broadcastID
         self.mediaQ      = DispatchQueue(label: "\(broadcastID).media.q",
-                                           qos: .default,
+                                           qos: .userInitiated,
                                     attributes: DispatchQueue.Attributes(rawValue: 0),
                           autoreleaseFrequency: .inherit,
                                         target: nil)
         
         self.cloudQ      = DispatchQueue(label: "\(broadcastID).cloud.q",
-                                           qos: .default,
-                                    attributes: DispatchQueue.Attributes(rawValue: 0),
+                                           qos: .userInitiated,
+                                    attributes: .concurrent,
                           autoreleaseFrequency: .inherit,
                                         target: nil)
 
@@ -132,16 +136,21 @@ class MediaWriter {
     
     private func digestForThumbnailProcessing(sample: VideoSample) {
         guard sample.isSync else { return }
-        if let sps = self.videoParams?.first {
-            if let pps = self.videoParams?.last {
-                self.thumbnailWriter?.set(sps: Array(sps[1..<sps.count]),
-                                          pps: Array(pps[1..<pps.count]))
-                
-                for nalu in sample.nalus {
-                    self.thumbnailWriter?.decode(keyframe: Array(nalu.data[4..<nalu.data.count]))
+
+        if iFrameCnt >= Config.thumbnailInterval {
+            if let sps = self.videoParams?.first {
+                if let pps = self.videoParams?.last {
+                    self.thumbnailWriter?.set(sps: Array(sps[1..<sps.count]),
+                                              pps: Array(pps[1..<pps.count]))
+                    
+                    for nalu in sample.nalus {
+                        self.thumbnailWriter?.decode(keyframe: Array(nalu.data[4..<nalu.data.count]))
+                    }
                 }
             }
+            iFrameCnt = 0
         }
+        self.iFrameCnt += 1
     }
 
 }
@@ -149,38 +158,67 @@ class MediaWriter {
 extension MediaWriter: FileWriterDelegate {
     func wroteFile(at url: URL) {
         Log.info("\(self.broadcastID) - wrote file: \(url.path)")
+
+        self.dispatchGroup.enter()
         self.cloudQ.async {
             do {
+
                 try self.cloud?.upload(file: url, deleteAfterUpload: true)
+                self.dispatchGroup.leave()
+                
             } catch let error {
+                
                 Log.error("Could NOT upload file: \(error)")
+                self.dispatchGroup.leave()
                 self.wroteFile(at: url)
+                
             }
         }
     }
     
     func updatedFile(at url: URL) {
         Log.info("\(self.broadcastID) - updated file: \(url.path)")
+        
+        self.dispatchGroup.enter()
         self.cloudQ.async {
             do {
+                
                 try self.cloud?.upload(file: url, deleteAfterUpload: false)
+                self.dispatchGroup.leave()
+
             } catch let error {
+                
                 Log.error("Could NOT upload file: \(error)")
+                self.dispatchGroup.leave()
                 self.updatedFile(at: url)
+                
             }
         }
     }
+    
+    func stop() {
+        self.dispatchGroup.wait()
+    }
+    
 }
 
 extension MediaWriter: MementoProtocol {
     func wroteJPEG(to url: URL) {
         Log.info("\(self.broadcastID) - wrote jpeg: \(url.path)")
+        
+        self.dispatchGroup.enter()
         self.cloudQ.async {
             do {
+                
                 try self.cloud?.upload(file: url, deleteAfterUpload: true)
+                self.dispatchGroup.leave()
+
             } catch let error {
+                
                 Log.error("Could NOT upload file: \(error)")
+                self.dispatchGroup.leave()
                 self.wroteJPEG(to: url)
+                
             }
         }
     }

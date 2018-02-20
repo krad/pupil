@@ -82,8 +82,7 @@ public class PupilClient: Client {
     }
     
     public func close() {
-        Log.debug("\(self.hostName) client got close")
         self.socket.close()
-        self.onClose?(self)
     }
+    
 }

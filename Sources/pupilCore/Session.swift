@@ -57,9 +57,7 @@ public class PupilSession: Session {
         self.root     = root
         self.mode     = .text
         
-        self.client   = PupilClient(socket: socket) { _ in
-            self.delegate.disconnected(session: self)
-        }
+        self.client   = PupilClient(socket: socket) { _ in self.stop() }
 
         self.remoteHostname = self.client!.hostName
         self.client?.onRead = self.read
@@ -101,7 +99,16 @@ public class PupilSession: Session {
     
     public func stop() {
         Log.debug("\(self.client!.hostName) session got close")
-        self.client?.close()
+        if let av = self.avsession {
+            Log.info("Notifying session to cleanup")
+            av.stop {
+                Log.info("Outstanding session tasks complete")
+                self.delegate.disconnected(session: self)
+            }
+        } else {
+            Log.info("No AV session present.  Disconnecting immediately")
+            self.delegate.disconnected(session: self)
+        }
     }
 
 }

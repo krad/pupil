@@ -62,10 +62,9 @@ class CloudManager {
         let broadcastID   = urlComponents.popLast()!
         let bucketKey     = "\(broadcastID)/\(fileName)"
         var isThumbNail    = false
-        print("[UPLOAD] - Starting   - ", bucketKey)
+        Log.info("Upload starting: \(bucketKey)")
 
         let data = try Data(contentsOf: atURL)
-
 
         var contentType = ""
         if fileName.contains(substring: "m3u8") {
