@@ -44,6 +44,8 @@ public enum ServerTextResponse: String {
 
 public class PupilServer: Server, SessionDelegate {
     
+    /// Default read buffer size.
+    /// This is the max amount of data we can read in via each read call in the event loop
     static let bufferSize = 4096
     
     public let port: Int32
@@ -52,6 +54,9 @@ public class PupilServer: Server, SessionDelegate {
         if let s = self.listenSocket { return s.isListening }
         return false
     }
+    
+    
+    /// These are all the connected sessions.
     public var sessions: [Session] = []
     
     internal var listenSocket: Socket?

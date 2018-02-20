@@ -37,51 +37,53 @@ public struct Config {
     
     internal static var values: ConfigValues?
 
-    static var port: Int32 {
+    public static var port: Int32 {
         if let p = values?.port { return p }
         return 42000
     }
     
-    static var root: URL {
+    public static var root: URL {
         if let r = values?.root { return r }
         return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     }
     
-    static var thumbnailInterval: Int {
+    public static var thumbnailInterval: Int {
         if let t = values?.thumbnailInterval { return t }
         return 30
     }
     
-    static var bucket: String {
+    public static var bucket: String {
         if let b = values?.bucket { return b }
         return ""
     }
     
-    static var region: String {
+    public static var region: String {
         if let r = values?.region { return r }
         return ""
     }
     
-    static var key: String {
+    public static var key: String {
         if let k = values?.keyID { return k }
         return ""
     }
     
-    static var secret: String {
+    public static var secret: String {
         if let s = values?.keySecret { return s }
         return ""
     }
     
-    static var apiHost: String {
+    public static var apiHost: String {
         if let h = values?.host { return h }
         return ""
     }
     
     public static func load(from file: URL) throws {
+        configureLogger()
         self.values = try ConfigValues.load(from: file)
     }
     
     public static func loadFromEnvironment() throws {
+        configureLogger()
         self.values = try ConfigValues.from(environment: ENVIRONMENT)
     }
 

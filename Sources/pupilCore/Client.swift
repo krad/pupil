@@ -64,6 +64,7 @@ public class PupilClient: Client {
                         break
                     }
                 }
+                readData.count = 0
             } while shouldKeepRunning
             
         } catch let err {

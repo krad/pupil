@@ -20,7 +20,9 @@ class AVSession {
                 do { self.mediaWriter = try MediaWriter(streamType: st,
                                                         broadcastID: self.broadcastID,
                                                         outputDir: self.broadcastRoot) }
-                catch let err { print("Coudln't setup media writer", err) }
+                catch let err {
+                    Log.error("Could not create media writer: \(err)")
+                }
             }
         }
     }
@@ -50,9 +52,9 @@ class AVSession {
     ///   Will buffer bytes until full packets or a/v data is found.
     ///
     func read( _ data: [UInt8]) {
-        guard buffer(data: data),
-        let length = self.getNextLength() else { return }
-    
+        self.buffer(data: data)
+        guard let length = self.getNextLength() else { return }
+
         let packetBytes = getPacketBytes(length: length)
         if let packetType = getPacketType(packet: packetBytes) {
             self.handle(packet: packetBytes, type: packetType)
@@ -68,12 +70,10 @@ class AVSession {
     ///
     /// - Parameter data: An array of 8 bit integers
     /// - Returns: Returns true if we successfully buffered the data
-    private func buffer(data: [UInt8]) -> Bool {
+    private func buffer(data: [UInt8]) {
         if data.count > 0 {
             self.buffer.append(contentsOf: data)
-            return true
         }
-        return false
     }
     
     /// Packets received come prepended with 4 bytes describing the length until the next packet
