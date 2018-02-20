@@ -41,7 +41,7 @@ class SessionTests: XCTestCase {
         let delegate    = MockDelegate()
         
         socket.writeExp = self.expectation(description: "Should get the 'HI' message")
-        let session     = try? PSession(socket: socket,
+        let session     = try? PupilSession(socket: socket,
                                         root: URL(fileURLWithPath: NSTemporaryDirectory()),
                                         delegate: delegate)
         XCTAssertNotNil(session)

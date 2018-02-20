@@ -1,4 +1,5 @@
 import Foundation
+import LoggerAPI
 
 public enum SessionMode {
     case text
@@ -9,6 +10,7 @@ public protocol Session {
     init(socket: GenericSocket, root: URL, delegate: SessionDelegate) throws
     var mode: SessionMode { get }
     var broadcastID: String? { get }
+    var remoteHostname: String { get }
     var hashValue: Int { get }
     var bytesRead: UInt64 { get }
     func stop()
@@ -24,7 +26,7 @@ func ==(lhs: Session, rhs: Session) -> Bool {
 
 
 /// PupilSession - Represents
-public class PSession: Session {
+public class PupilSession: Session {
     private var client: Client?
     private let delegate: SessionDelegate
     
@@ -35,6 +37,8 @@ public class PSession: Session {
     private var root: URL
     
     public private(set) var bytesRead: UInt64 = 0
+    
+    public var remoteHostname: String = ""
 
     public var hashValue: Int {
         if let c = self.client {
@@ -47,6 +51,8 @@ public class PSession: Session {
                          root: URL,
                          delegate: SessionDelegate) throws
     {
+        Log.info("Connection from \(socket.remoteHostname)")
+
         self.delegate = delegate
         self.root     = root
         self.mode     = .text
@@ -54,9 +60,12 @@ public class PSession: Session {
         self.client   = PupilClient(socket: socket) { _ in
             self.delegate.disconnected(session: self)
         }
-        
+
+        self.remoteHostname = self.client!.hostName
         self.client?.onRead = self.read
         _ = try self.client?.write(ServerTextResponse.connect.rawValue)
+        
+        Log.verbose("\(self.client!.hostName) greeted")
     }
     
     private func read(client: Client, data: Data) throws {
@@ -70,12 +79,15 @@ public class PSession: Session {
     
     private func handle(text data: Data) throws {
         if let response = String(data: data, encoding: .utf8) {
-            self.broadcastID = response.replacingOccurrences(of: "\n",
-                                                           with: "",
-                                                        options: .regularExpression,
-                                                          range: nil)
+            let broadcastID  = response.replacingOccurrences(of: "\n",
+                                                            with: "",
+                                                            options: .regularExpression,
+                                                            range: nil)
+            self.broadcastID = broadcastID
+            self.mode        = .streaming
+            Log.verbose("\(self.client!.hostName) set \(broadcastID)")
             
-            self.mode      = .streaming
+            // Setup the AVSession for handling media portion of the protocol
             self.avsession = try AVSession(broadcastID: self.broadcastID!, root: self.root)
             _ = try self.client?.write(ServerTextResponse.begin.rawValue)
         }
@@ -87,6 +99,7 @@ public class PSession: Session {
     }
     
     public func stop() {
+        Log.debug("\(self.client!.hostName) session got close")
         self.client?.close()
     }
 

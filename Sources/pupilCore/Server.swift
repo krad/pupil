@@ -1,5 +1,9 @@
 import Foundation
 import Socket
+import HeliumLogger
+import LoggerAPI
+
+let logger = HeliumLogger()
 
 /// Protocol describing behavior of a server
 public protocol Server {
@@ -48,9 +52,7 @@ public class PupilServer: Server, SessionDelegate {
     public let port: Int32
     public let root: URL
     public var started: Bool {
-        if let s = self.listenSocket {
-            return s.isListening
-        }
+        if let s = self.listenSocket { return s.isListening }
         return false
     }
     public var sessions: [Session] = []
@@ -62,6 +64,8 @@ public class PupilServer: Server, SessionDelegate {
     private var lockQ   = DispatchQueue(label: "pupil.server.socketLockQ")
     
     public required init(port: Int32, root: URL?) {
+        Log.logger = logger
+
         self.port = port
         if let r = root { self.root = r }
         else {
@@ -76,6 +80,7 @@ public class PupilServer: Server, SessionDelegate {
     /// - Parameter onStart: Closure called when the server is up and running
     /// - Throws: Throws an error when the server can't start
     public func start(_ onStart: (() -> Void)?) throws {
+        Log.info("Starting pupil on \(self.port)")
         let listenSocket     = try Socket.create()
         try listenSocket.listen(on: Int(self.port))
         self.listenSocket    = listenSocket
@@ -90,13 +95,13 @@ public class PupilServer: Server, SessionDelegate {
                 onStart?()
                 repeat {
                     let newSocket = try socket.acceptClientConnection()
-                    let session   = try PSession(socket: newSocket,
+                    let session   = try PupilSession(socket: newSocket,
                                                  root: self.root,
                                                  delegate: self)
                     self.connected(session)
                 } while self.continueRunning
             } catch let err {
-                print("Server err:", err)
+                Log.error("Listen/Accept error: \(err)")
             }
         }
     }
@@ -106,6 +111,7 @@ public class PupilServer: Server, SessionDelegate {
     }
     
     public func disconnected(session: Session) {
+        Log.info("Disconnection from \(session.remoteHostname)")
         self.lockQ.sync {[unowned self, session] in
             if let idx = self.sessions.index(where: { $0 == session }) {
                 self.sessions.remove(at: idx)
@@ -114,6 +120,7 @@ public class PupilServer: Server, SessionDelegate {
     }
     
     public func stop() {
+        Log.info("pupil is stopping...")
         self.continueRunning = false
         self.sessions.forEach { $0.stop() }
         self.listenSocket?.close()

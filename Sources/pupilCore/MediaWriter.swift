@@ -2,6 +2,7 @@ import Foundation
 import morsel
 import memento
 import grip
+import LoggerAPI
 
 class MediaWriter {
     
@@ -16,9 +17,15 @@ class MediaWriter {
     
     /// When we have a video stream this contains an array of btyes representing the Sequence Parameter set and the Picture Parameter set
     var videoParams: [[UInt8]]?
+    
+    let broadcastID: String
 
     
-    init(streamType: StreamType, outputDir: URL) throws {
+    init(streamType: StreamType,
+         broadcastID: String,
+         outputDir: URL) throws
+    {
+        self.broadcastID = broadcastID
         self.mediawriter = try FragmentedMP4Writer(outputDir,
                                               targetDuration: 6.0,
                                               streamType: streamType,
@@ -79,7 +86,9 @@ class MediaWriter {
         let settings = VideoSettings(params: params,
                                      dimensions: dimensions,
                                      timescale: sample.timescale)
+        
         if prevSettings != settings {
+            Log.info("Updating video settings")
             writer.configure(settings: settings)
             self.videoSettings = settings
         }
@@ -103,20 +112,20 @@ class MediaWriter {
 
 extension MediaWriter: FileWriterDelegate {
     func wroteFile(at url: URL) {
-        print("======", #function)
+        Log.info("\(self.broadcastID) - wrote file: \(url.path)")
     }
     
     func updatedFile(at url: URL) {
-        print("======", #function)
+        Log.info("\(self.broadcastID) - updated file: \(url.path)")
     }
 }
 
 extension MediaWriter: MementoProtocol {
     func wroteJPEG(to url: URL) {
-        print("======", #function)
+        Log.info("\(self.broadcastID) - wrote jpeg: \(url.path)")
     }
     
     func failedToWriteJPEG(error: Error) {
-        print("======", #function)
+        Log.error("\(self.broadcastID) - failed to write file: \(error)")
     }
 }

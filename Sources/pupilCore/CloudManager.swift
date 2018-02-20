@@ -79,11 +79,11 @@ class CloudManager {
         }
     }
     
-    func update(broadcast: String, with state: PupilSessionState) {
-        print("Updating \(broadcast) state: \(state.rawValue)")
-        let payload: [String: Any] = ["status": state.rawValue]
-        self.update(broadcast: broadcast, with: payload)
-    }
+//    func update(broadcast: String, with state: PupilSessionState) {
+//        print("Updating \(broadcast) state: \(state.rawValue)")
+//        let payload: [String: Any] = ["status": state.rawValue]
+//        self.update(broadcast: broadcast, with: payload)
+//    }
     
     func upload(file atURL: URL, deleteAfterUpload: Bool) throws {
         var urlComponents = atURL.absoluteString.components(separatedBy: "/")

@@ -1,6 +1,7 @@
 import Foundation
 import morsel
 import grip
+import LoggerAPI
 
 
 /// Network front end for an audio/video session.
@@ -16,7 +17,9 @@ class AVSession {
     var streamType: StreamType? {
         didSet {
             if let st = streamType {
-                do { self.mediaWriter = try MediaWriter(streamType: st, outputDir: self.broadcastRoot) }
+                do { self.mediaWriter = try MediaWriter(streamType: st,
+                                                        broadcastID: self.broadcastID,
+                                                        outputDir: self.broadcastRoot) }
                 catch let err { print("Coudln't setup media writer", err) }
             }
         }
@@ -124,10 +127,19 @@ class AVSession {
     ///   - type: An enum describing the type of packet being dealt with
     private func handle(packet: [UInt8], type: PacketType) {
         switch type {
-        case .streamType:      self.streamType                    = StreamType.parse(packet)
-        case .videoDimensions: self.mediaWriter?.videoDimensions  = VideoDimensions(from: packet)
+        case .streamType:
+            if let st = StreamType.parse(packet) {
+                self.streamType = st
+                Log.info("\(self.broadcastID) stream type: \(st)")
+            }
+        case .videoDimensions:
+            let dimensions                    = VideoDimensions(from: packet)
+            self.mediaWriter?.videoDimensions = dimensions
+            Log.info("\(self.broadcastID) video dimensions: \(dimensions.width)x\(dimensions.height)")
         case .videoParams:
-            self.mediaWriter?.videoParams = packet.split(separator: type.rawValue).map { Array($0) }
+            let params = packet.split(separator: type.rawValue).map { Array($0) }
+            self.mediaWriter?.videoParams = params
+            Log.debug("\(self.broadcastID) SPS/PPS set to: \(params)")
         }
     }
     

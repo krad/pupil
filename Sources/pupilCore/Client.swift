@@ -1,10 +1,13 @@
 import Foundation
 import Socket
+import LoggerAPI
 
 public typealias ClientStateCallback = (Client) -> Void
 public typealias ClientReadCallback  = (Client, Data) throws -> Void
 
 public protocol Client {
+    var hostName: String { get }
+
     init(socket: GenericSocket, onClose: ClientStateCallback?)
     
     var socket: GenericSocket { get }
@@ -25,7 +28,7 @@ public enum ClientError: Error {
 public class PupilClient: Client {
     
     public var socket: GenericSocket
-    public var hostName: String?
+    public var hostName: String
     public var port: Int32?
     
     fileprivate var rwq: DispatchQueue
@@ -33,7 +36,9 @@ public class PupilClient: Client {
     public var onRead: ClientReadCallback?
     
     public required init(socket: GenericSocket, onClose: ClientStateCallback?) {
-        self.socket = socket
+        self.socket   = socket
+        self.hostName = socket.remoteHostname
+        
         self.rwq    = DispatchQueue(label: "\(socket.socketfd).rwq",
                                       qos: .default,
                                attributes: DispatchQueue.Attributes(rawValue: 0),
@@ -61,7 +66,8 @@ public class PupilClient: Client {
                 }
             } while shouldKeepRunning
             
-        } catch {
+        } catch let err {
+            Log.error("\(self.hostName) read error: \(err)")
             self.onClose?(self)
         }
     }
@@ -75,6 +81,7 @@ public class PupilClient: Client {
     }
     
     public func close() {
+        Log.debug("\(self.hostName) client got close")
         self.socket.close()
         self.onClose?(self)
     }
