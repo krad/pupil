@@ -28,14 +28,9 @@ class MediaWriter {
     /// This is the broadcastID associated with the media writer
     let broadcastID: String
 
-    /// Writing big chunks of media can block the mp4 writer.
-    /// We append async here to prevent that.
-    fileprivate let mediaQ: DispatchQueue
-    
     /// Syncing to the cloud can block.
     /// We make async dispatch's using this queue.
     fileprivate let cloudQ: DispatchQueue
-    
     fileprivate var cloud: CloudManager?
     
     fileprivate var iFrameCnt: Int = Config.thumbnailInterval
@@ -47,12 +42,6 @@ class MediaWriter {
          outputDir: URL) throws
     {
         self.broadcastID = broadcastID
-        self.mediaQ      = DispatchQueue(label: "\(broadcastID).media.q",
-                                           qos: .userInitiated,
-                                    attributes: DispatchQueue.Attributes(rawValue: 0),
-                          autoreleaseFrequency: .inherit,
-                                        target: nil)
-        
         self.cloudQ      = DispatchQueue(label: "\(broadcastID).cloud.q",
                                            qos: .userInitiated,
                                     attributes: .concurrent,
@@ -80,27 +69,23 @@ class MediaWriter {
     }
     
     func handle(audio packet: [UInt8]) {
-        self.mediaQ.async {
-            let sample   = AudioSample(bytes: packet)
-            let settings = AudioSettings(sample)
-            if let writer = self.mediawriter {
-                writer.configure(settings: settings)
-                writer.append(sample: sample, type: .audio)
-            }
+        let sample   = AudioSample(bytes: packet)
+        let settings = AudioSettings(sample)
+        if let writer = self.mediawriter {
+            writer.configure(settings: settings)
+            writer.append(sample: sample, type: .audio)
         }
     }
     
     func handle(video packet: [UInt8]) {
         guard let writer = self.mediawriter else { return }
-        self.mediaQ.async {
-            let sample = VideoSample(bytes: packet)
-            
-            self.checkForVideoSettings(sample: sample)
-            self.checkForVideoSettingChanges(sample: sample)
-            self.digestForThumbnailProcessing(sample: sample)
-            
-            writer.append(sample: sample, type: .video)
-        }
+        let sample = VideoSample(bytes: packet)
+        
+        self.checkForVideoSettings(sample: sample)
+        self.checkForVideoSettingChanges(sample: sample)
+        self.digestForThumbnailProcessing(sample: sample)
+        
+        writer.append(sample: sample, type: .video)
     }
     
     private func checkForVideoSettings(sample: VideoSample) {
