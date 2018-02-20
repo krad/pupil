@@ -9,6 +9,7 @@ ENV PATH="/opt/swift-4.0.3-RELEASE-ubuntu16.10/usr/bin:${PATH}"
 RUN wget http://ffmpeg.org/releases/ffmpeg-3.4.1.tar.gz ; tar zxfv ffmpeg-3.4.1.tar.gz
 WORKDIR /opt/ffmpeg-3.4.1
 RUN ./configure --prefix=/usr; make; make install
-RUN git clone https://www.github.com/krad/pupil.git
+RUN git clone https://www.github.com/krad/pupil.git pupil
 WORKDIR /opt/pupil
-#RUN swift build
+RUN git pull
+RUN swift build

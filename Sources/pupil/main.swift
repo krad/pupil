@@ -2,11 +2,26 @@ import Foundation
 import Socket
 import Dispatch
 import morsel
+import pupilCore
+import LoggerAPI
 
-let port    = 40002
-let server  = PupilServer(port: port, root: URL(fileURLWithPath: "/opt/broadcasts"))
+do {
+    try Config.loadFromEnvironment()
+} catch let err {
+    Log.error("Environment variables not set: \(err)")
+    exit(-1)
+}
 
-print("pupil server running\n.o0[shoey skills shack edition]0o.\n\(version)")
-print("Connect with a command line window by telneting to port \(port)'")
+do {
+    let server = PupilServer()
 
-server.run()
+    try server.start() {
+        Log.info("pupil \(version) running on port \(Config.port) o0[\(release_name)]0o.")
+    }
+
+    dispatchMain()
+
+} catch let err {
+    Log.error("Problem starting server: \(err)")
+}
+
