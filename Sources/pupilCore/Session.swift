@@ -10,6 +10,7 @@ public protocol Session {
     var mode: SessionMode { get }
     var broadcastID: String? { get }
     var hashValue: Int { get }
+    var bytesRead: UInt64 { get }
     func stop()
 }
 
@@ -32,6 +33,8 @@ public class PSession: Session {
     
     private var avsession: AVSession?
     private var root: URL
+    
+    public private(set) var bytesRead: UInt64 = 0
 
     public var hashValue: Int {
         if let c = self.client {
@@ -79,6 +82,7 @@ public class PSession: Session {
     }
     
     private func handle(bytes data: [UInt8]) {
+        self.bytesRead += UInt64(data.count)
         self.avsession?.read(data)
     }
     

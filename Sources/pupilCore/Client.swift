@@ -34,7 +34,11 @@ public class PupilClient: Client {
     
     public required init(socket: GenericSocket, onClose: ClientStateCallback?) {
         self.socket = socket
-        self.rwq    = DispatchQueue.global(qos: .default)
+        self.rwq    = DispatchQueue(label: "\(socket.socketfd).rwq",
+                                      qos: .default,
+                               attributes: DispatchQueue.Attributes(rawValue: 0),
+                     autoreleaseFrequency: .inherit,
+                                   target: nil)
         
         self.onClose = onClose
         self.rwq.async {[unowned self] in self.mainReadLoop() }
