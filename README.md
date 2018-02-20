@@ -31,6 +31,7 @@ Properties that need to be configured are:
 
   * `port` The port the server will run on
   * `root` The directory that pupil will create subdirectories in for writing media files
+  * `host` The hostname for the API that publishes content (coming soon...)
   * `bucket` The bucket that media files should be uploaded to
   * `keyID` The AWS key ID to use when uploading to the bucket
   * `keySecret` The AWS key secret to use when uploading to the bucket
@@ -71,6 +72,7 @@ pupil -c /path/to/config.json
    * `PUPIL_PORT`
    * `PUPIL_ROOT`
    * `PUPIL_BUCKET`
+   * `PUPIL_API_HOST`
    * `PUPIL_THUMBNAIL_INTERVAL`
    * `AWS_REGION`
    * `AWS_KEYID`

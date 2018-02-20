@@ -27,7 +27,9 @@ class ConfigTests: XCTestCase {
         ENVIRONMENT[PUPIL_PORT]     = "1024"
         ENVIRONMENT[PUPIL_ROOT]     = "/tmp"
         ENVIRONMENT[PUPIL_BUCKET]   = "my-bucket"
+        ENVIRONMENT[PUPIL_API_HOST] = "krad.tv"
 
+        
         XCTAssertNoThrow(try ConfigValues.from(environment: ENVIRONMENT))
         let config = try? ConfigValues.from(environment: ENVIRONMENT)
         XCTAssertNotNil(config)

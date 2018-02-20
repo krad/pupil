@@ -9,6 +9,7 @@ let PUPIL_PORT               = "PUPIL_PORT"
 let PUPIL_ROOT               = "PUPIL_ROOT"
 let PUPIL_BUCKET             = "PUPIL_BUCKET"
 let PUPIL_THUMBNAIL_INTERVAL = "PUPIL_THUMBNAIL_INTERVAL"
+let PUPIL_API_HOST           = "PUPIL_API_HOST"
 
 internal var ENVIRONMENT = ProcessInfo.processInfo.environment
 
@@ -56,6 +57,26 @@ public struct Config {
         return ""
     }
     
+    static var region: String {
+        if let r = values?.region { return r }
+        return ""
+    }
+    
+    static var key: String {
+        if let k = values?.keyID { return k }
+        return ""
+    }
+    
+    static var secret: String {
+        if let s = values?.keySecret { return s }
+        return ""
+    }
+    
+    static var apiHost: String {
+        if let h = values?.host { return h }
+        return ""
+    }
+    
     public static func load(from file: URL) throws {
         self.values = try ConfigValues.load(from: file)
     }
@@ -75,6 +96,7 @@ public struct ConfigValues: Decodable {
     let keyID: String
     let keySecret: String
     let thumbnailInterval: Int
+    let host: String
     
     enum CodingKeys: String, CodingKey {
         case port               = "port"
@@ -84,6 +106,7 @@ public struct ConfigValues: Decodable {
         case keyID              = "key_id"
         case keySecret          = "key_secret"
         case thumbnailInterval  = "thumbnail_interval"
+        case host               = "host"
     }
     
     internal static func load(from file: URL) throws -> ConfigValues {
@@ -114,6 +137,9 @@ public struct ConfigValues: Decodable {
         guard let secret =
             environment[AWS_KEYSECRET] else { throw ConfigError.keyNotFound(key: AWS_KEYSECRET)}
         
+        guard let host =
+            environment[PUPIL_API_HOST] else { throw ConfigError.keyNotFound(key: PUPIL_API_HOST) }
+        
         var tInterval = 30
         if let thumb = environment[PUPIL_THUMBNAIL_INTERVAL] {
             if let t = Int(thumb) { tInterval = t }
@@ -125,7 +151,8 @@ public struct ConfigValues: Decodable {
                                   region: region,
                                   keyID: key,
                                   keySecret: secret,
-                                  thumbnailInterval: tInterval)
+                                  thumbnailInterval: tInterval,
+                                  host: host)
         
         return config
     }

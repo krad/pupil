@@ -9,21 +9,16 @@ enum CloudManagerError: Error {
 class CloudManager {
     
     private let client: S3
-    private let bucket = "krad-tv-staging-video"
+    private let bucket = Config.bucket
     
     private let sessionConfiguration = URLSessionConfiguration.default
     private let urlSession: URLSession
     private var broadcast: Broadcast?
     
     init() throws {
-        guard let region    = ProcessInfo.processInfo.environment[AWS_REGION_KEY],
-              let keyID     = ProcessInfo.processInfo.environment[AWS_KEYID_KEY],
-              let keySecret = ProcessInfo.processInfo.environment[AWS_KEYSECRET]
-        else { throw CloudManagerError.configInfoMissing }
-        
-        let reg     = Region(rawValue: region)
-        self.client = S3(accessKeyId: keyID,
-                         secretAccessKey: keySecret,
+        let reg     = Region(rawValue: Config.region)
+        self.client = S3(accessKeyId: Config.key,
+                         secretAccessKey: Config.secret,
                          region: reg,
                          endpoint: nil)
         
