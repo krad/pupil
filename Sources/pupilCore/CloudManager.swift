@@ -2,10 +2,6 @@ import Foundation
 import SwiftAWSS3
 import AWSSDKSwiftCore
 
-let AWS_REGION_KEY = "AWS_REGION"
-let AWS_KEYID_KEY  = "AWS_KEYID"
-let AWS_KEYSECRET  = "AWS_KEYSECRET"
-
 enum CloudManagerError: Error {
     case configInfoMissing
 }

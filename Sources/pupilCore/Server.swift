@@ -1,9 +1,6 @@
 import Foundation
 import Socket
-import HeliumLogger
 import LoggerAPI
-
-let logger = HeliumLogger()
 
 /// Protocol describing behavior of a server
 public protocol Server {
@@ -64,8 +61,6 @@ public class PupilServer: Server, SessionDelegate {
     private var lockQ   = DispatchQueue(label: "pupil.server.socketLockQ")
     
     public required init(port: Int32, root: URL?) {
-        Log.logger = logger
-
         self.port = port
         if let r = root { self.root = r }
         else {
@@ -74,7 +69,10 @@ public class PupilServer: Server, SessionDelegate {
         }
     }
     
-    
+    public convenience init() {
+        self.init(port: Config.port, root: Config.root)
+    }
+        
     /// Create a listening socket and begin accepting connections
     ///
     /// - Parameter onStart: Closure called when the server is up and running
