@@ -4,6 +4,7 @@ import memento
 import grip
 import photon
 import LoggerAPI
+import Dispatch
 
 enum SessionState: String {
     case starting   = "STARTING"
