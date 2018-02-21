@@ -1,5 +1,6 @@
 import Foundation
 import Socket
+import Dispatch
 import LoggerAPI
 
 /// Protocol describing behavior of a server

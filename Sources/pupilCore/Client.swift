@@ -1,6 +1,7 @@
 import Foundation
 import Socket
 import LoggerAPI
+import Dispatch
 
 public typealias ClientStateCallback = (Client) -> Void
 public typealias ClientReadCallback  = (Client, Data) throws -> Void
