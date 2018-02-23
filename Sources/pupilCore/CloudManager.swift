@@ -126,6 +126,20 @@ class CloudManager {
             Log.info("Cleanup complete - \(atURL)")
         }
     }
+    
+    func notifyStarted() {
+        if var broadcast = self.broadcast {
+            broadcast.status = "LIVE"
+            self.update(broadcast: broadcast)
+        }
+    }
+    
+    func finalize() {
+        if var broadcast = self.broadcast {
+            broadcast.status = "DONE"
+            self.update(broadcast: broadcast)
+        }
+    }
 
 }
 

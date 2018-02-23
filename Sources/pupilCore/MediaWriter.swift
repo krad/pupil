@@ -100,6 +100,20 @@ class MediaWriter {
                                          timescale: sample.timescale)
             self.videoSettings = settings
             writer.configure(settings: settings)
+
+            // TODO: Clean this up.
+            if let cloud = self.cloud {
+                if let broadcast = cloud.broadcast {
+                    if broadcast.status != "LIVE" {
+                        self.dispatchGroup.enter()
+                        self.cloudQ.async {
+                            cloud.notifyStarted()
+                            self.dispatchGroup.leave()
+                        }
+                    }
+                }
+            }
+            
         }
     }
     
@@ -183,6 +197,7 @@ extension MediaWriter: FileWriterDelegate {
     }
     
     func stop() {
+        self.cloud?.finalize()
         self.dispatchGroup.wait()
     }
     
