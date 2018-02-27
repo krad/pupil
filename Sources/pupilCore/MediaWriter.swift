@@ -31,24 +31,15 @@ class MediaWriter {
 
     /// Syncing to the cloud can block.
     /// We make async dispatch's using this queue.
-    fileprivate let cloudQ: DispatchQueue
     fileprivate var cloud: CloudManager?
     
     fileprivate var iFrameCnt: Int = Config.thumbnailInterval
-    
-    private let dispatchGroup = DispatchGroup()
     
     init(streamType: StreamType,
          broadcastID: String,
          outputDir: URL) throws
     {
         self.broadcastID = broadcastID
-        self.cloudQ      = DispatchQueue(label: "\(broadcastID).cloud.q",
-                                           qos: .userInitiated,
-                                    attributes: .concurrent,
-                          autoreleaseFrequency: .inherit,
-                                        target: nil)
-
         self.mediawriter = try FragmentedMP4Writer(outputDir,
                                               targetDuration: 6.0,
                                               streamType: streamType,
@@ -105,11 +96,7 @@ class MediaWriter {
             if let cloud = self.cloud {
                 if let broadcast = cloud.broadcast {
                     if broadcast.status != "LIVE" {
-                        self.dispatchGroup.enter()
-                        self.cloudQ.async {
-                            cloud.notifyStarted()
-                            self.dispatchGroup.leave()
-                        }
+                        cloud.notifyStarted()
                     }
                 }
             }
@@ -158,70 +145,22 @@ class MediaWriter {
 extension MediaWriter: FileWriterDelegate {
     func wroteFile(at url: URL) {
         Log.info("\(self.broadcastID) - wrote file: \(url.path)")
-
-        self.dispatchGroup.enter()
-        self.cloudQ.async {
-            do {
-
-                try self.cloud?.upload(file: url, deleteAfterUpload: true)
-                self.dispatchGroup.leave()
-                
-            } catch let error {
-                
-                Log.error("Could NOT upload file: \(error)")
-                self.dispatchGroup.leave()
-                self.wroteFile(at: url)
-                
-            }
-        }
+        self.cloud?.uploadAsync(file: url, deleteAfterUpload: true)
     }
     
     func updatedFile(at url: URL) {
         Log.info("\(self.broadcastID) - updated file: \(url.path)")
-        
-        self.dispatchGroup.enter()
-        self.cloudQ.async {
-            do {
-                
-                try self.cloud?.upload(file: url, deleteAfterUpload: false)
-                self.dispatchGroup.leave()
-
-            } catch let error {
-                
-                Log.error("Could NOT upload file: \(error)")
-                self.dispatchGroup.leave()
-                self.updatedFile(at: url)
-                
-            }
-        }
+        self.cloud?.uploadAsync(file: url, deleteAfterUpload: false)
     }
     
-    func stop() {
-        self.cloud?.finalize()
-        self.dispatchGroup.wait()
-    }
+    func stop() { self.cloud?.finalize() }
     
 }
 
 extension MediaWriter: MementoProtocol {
     func wroteJPEG(to url: URL) {
         Log.info("\(self.broadcastID) - wrote jpeg: \(url.path)")
-        
-        self.dispatchGroup.enter()
-        self.cloudQ.async {
-            do {
-                
-                try self.cloud?.upload(file: url, deleteAfterUpload: true)
-                self.dispatchGroup.leave()
-
-            } catch let error {
-                
-                Log.error("Could NOT upload file: \(error)")
-                self.dispatchGroup.leave()
-                self.wroteJPEG(to: url)
-                
-            }
-        }
+        self.cloud?.uploadAsync(file: url, deleteAfterUpload: true)
     }
     
     func failedToWriteJPEG(error: Error) {

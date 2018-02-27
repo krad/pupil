@@ -3,6 +3,7 @@ import SwiftAWSS3
 import AWSSDKSwiftCore
 import photon
 import LoggerAPI
+import Dispatch
 
 enum CloudManagerError: Error {
     case configInfoMissing
@@ -14,6 +15,11 @@ class CloudManager {
     var broadcastID: String
     var broadcast: Broadcast?
     
+    fileprivate let cloudQ = DispatchQueue(label: "cloud.q",
+                                             qos: .userInitiated,
+                                      attributes: .concurrent,
+                            autoreleaseFrequency: .inherit,
+                                          target: nil)
     private let s3Client: S3
     private let bucket = Config.bucket
     
@@ -55,6 +61,16 @@ class CloudManager {
                 Log.info("Successfully updated broadcast: \(v)")
             case .failure(let err):
                 Log.error("Problem updating broadcast: \(err)")
+            }
+        }
+    }
+    
+    func uploadAsync(file atURL: URL, deleteAfterUpload: Bool) {
+        self.cloudQ.async {
+            do { try self.upload(file: atURL, deleteAfterUpload: deleteAfterUpload) }
+            catch let err {
+                Log.error("Could NOT upload file: \(err)")
+                self.uploadAsync(file: atURL, deleteAfterUpload: deleteAfterUpload)
             }
         }
     }
@@ -128,9 +144,11 @@ class CloudManager {
     }
     
     func notifyStarted() {
-        if var broadcast = self.broadcast {
-            broadcast.status = "LIVE"
-            self.update(broadcast: broadcast)
+        self.cloudQ.async {
+            if var broadcast = self.broadcast {
+                broadcast.status = "LIVE"
+                self.update(broadcast: broadcast)
+            }
         }
     }
     
