@@ -11,7 +11,7 @@ let package = Package(
   	.package(url: "https://github.com/krad/morsel.git", from: "1.1.1"),
   	.package(url: "https://github.com/krad/grip.git", from: "1.2.3"),
   	.package(url: "https://github.com/krad/memento.git", from: "0.0.8"),
-  	.package(url: "https://github.com/krad/photon.git", from: "0.2.5"),
+  	.package(url: "https://github.com/krad/photon.git", from: "0.2.6"),
   	.package(url: "https://github.com/IBM-Swift/HeliumLogger.git", from: "1.7.1"),
     ],
     targets: [
