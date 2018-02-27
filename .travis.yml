@@ -1,5 +1,7 @@
 language: swift
-osx_image: xcode9
+dist: artful
+install:
+  - sudo apt-get --yes install libavcodec-dev libavcodec57 libavformat-dev libavformat57 libavresample-dev libavresample3 libavutil-dev libavutil55 libswresample-dev libswresample2 libswscale-dev libswscale4
 xcode_project: pupil.xcodeproj
 script:
   - swift build

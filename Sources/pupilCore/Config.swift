@@ -31,6 +31,7 @@ func configureLogger() {
     let logger     = HeliumLogger()
     logger.colored = true
     Log.logger     = logger
+    setbuf(stdout, nil)
 }
 
 public struct Config {

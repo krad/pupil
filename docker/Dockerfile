@@ -12,10 +12,10 @@ WORKDIR /opt
 RUN mkdir broadcasts
 RUN git clone https://github.com/krad/pupil.git pupil
 WORKDIR /opt/pupil
-RUN wget https://github.com/krad/pupil/archive/1.0.1.tar.gz; tar zxfv 1.0.1.tar.gz
-WORKDIR /opt/pupil/pupil-1.0.1
+RUN wget https://github.com/krad/pupil/archive/1.0.3.tar.gz; tar zxfv 1.0.3.tar.gz
+WORKDIR /opt/pupil/pupil-1.0.3
 RUN swift build --build-path ./build -c release
 
 EXPOSE 42000
 
-CMD ["/opt/pupil/build/release/pupil"]
+CMD ["/opt/pupil/pupil-1.0.3/build/release/pupil"]

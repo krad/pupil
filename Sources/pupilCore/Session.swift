@@ -86,7 +86,8 @@ public class PupilSession: Session {
             Log.info("\(self.client!.hostName) set \(broadcastID)")
             
             // Setup the AVSession for handling media portion of the protocol
-            self.avsession = try AVSession(broadcastID: self.broadcastID!, root: self.root)
+            self.avsession = try AVSession(broadcastID: self.broadcastID!,
+                                                  root: self.root)
             _ = try self.client?.write(ServerTextResponse.begin.rawValue)
             Log.info("\(self.client!.hostName) \(broadcastID) sent BEGIN")
         }
