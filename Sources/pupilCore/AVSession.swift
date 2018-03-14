@@ -113,9 +113,9 @@ class AVSession {
     ///
     /// - Parameter packet: A packet payload (bytes starting AFTER the length data)
     /// - Returns: A SampleType enum with the correct type selected
-    private func getSampleType(packet: [UInt8]) -> SampleType? {
+    private func getSampleType(packet: [UInt8]) -> CompressedSampleType? {
         let typeByte = packet[0]
-        return SampleType(rawValue: typeByte)
+        return CompressedSampleType(rawValue: typeByte)
     }
     
     
@@ -149,7 +149,7 @@ class AVSession {
     /// - Parameters:
     ///   - sample: Sample bytes representing an Audio / Video sample
     ///   - type: An enum flagging the type of sample in the bytes payload
-    private func handle(sample: [UInt8], type: SampleType) {
+    private func handle(sample: [UInt8], type: CompressedSampleType) {
         switch type {
         case .video: self.mediaWriter?.handle(video: sample)
         case .audio: self.mediaWriter?.handle(audio: sample)

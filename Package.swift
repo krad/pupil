@@ -8,10 +8,10 @@ let package = Package(
     dependencies: [
 	.package(url: "https://github.com/IBM-Swift/BlueSocket.git", from: "0.12.77"),
   	.package(url: "https://github.com/swift-aws/s3.git", .upToNextMajor(from: "1.0.0")),
-  	.package(url: "https://github.com/krad/morsel.git", from: "1.1.1"),
+  	.package(url: "https://github.com/krad/morsel.git", from: "1.1.3"),
   	.package(url: "https://github.com/krad/grip.git", from: "1.2.3"),
   	.package(url: "https://github.com/krad/memento.git", from: "0.0.8"),
-  	.package(url: "https://github.com/krad/photon.git", from: "0.2.6"),
+    	.package(url: "https://github.com/krad/workshop.git", from: "1.0.1"),
   	.package(url: "https://github.com/IBM-Swift/HeliumLogger.git", from: "1.7.1"),
     ],
     targets: [
@@ -22,7 +22,7 @@ let package = Package(
             dependencies: ["pupilCore"]),
 	.target(
 	    name: "pupilCore",
-	    dependencies: ["Socket", "SwiftAWSS3", "morsel", "memento", "HeliumLogger", "photon"]),
+	    dependencies: ["Socket", "SwiftAWSS3", "morsel", "memento", "HeliumLogger", "workshop"]),
 	.testTarget(
             name: "pupilTests",
             dependencies: ["pupil"]),

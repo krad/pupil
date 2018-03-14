@@ -1,9 +1,9 @@
 import Foundation
 import SwiftAWSS3
 import AWSSDKSwiftCore
-import photon
 import LoggerAPI
 import Dispatch
+import workshop
 
 enum CloudManagerError: Error {
     case configInfoMissing
@@ -11,7 +11,7 @@ enum CloudManagerError: Error {
 
 class CloudManager {
     
-    var photon: Photon
+    var client: APIClient
     var broadcastID: String
     var broadcast: Broadcast?
     
@@ -24,7 +24,7 @@ class CloudManager {
     private let bucket = Config.bucket
     
     init(broadcastID: String) {
-        self.photon         = Photon(host: Config.apiHost)
+        self.client         = CloudClient(host: Config.apiHost)
         self.broadcastID    = broadcastID
         
         let reg       = Region(rawValue: Config.region)
@@ -39,7 +39,7 @@ class CloudManager {
     func setup() {
         Log.info("Fetching broadcast details for \(self.broadcastID)")
         let getBroadcast = GetBroadcast(self.broadcastID)
-        self.photon.send(getBroadcast) { result in
+        self.client.send(getBroadcast) { result in
             switch result {
             case .success(let broadcast):
                 Log.info("Got broadcast details: \(self.broadcastID)")
@@ -55,7 +55,7 @@ class CloudManager {
                                                    status: broadcast.status,
                                                thumbnails: broadcast.thumbnails)
         
-        self.photon.send(updateBroadcast) { result in
+        self.client.send(updateBroadcast) { result in
             switch result {
             case .success(let v):
                 Log.info("Successfully updated broadcast: \(v)")
@@ -183,3 +183,15 @@ public struct UpdateBroadcast: APIRequest {
     }
 }
 
+public struct GetBroadcast: APIRequest {
+    public typealias Response = Broadcast
+    
+    public var resourceName: String { return ["broadcasts", self.broadcastID].joined(separator: "/") }
+    public var method: APIRequestMethod { return .get }
+    
+    var broadcastID: String
+    
+    public init(_ broadcastID: String) {
+        self.broadcastID = broadcastID
+    }
+}

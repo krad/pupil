@@ -1,7 +1,7 @@
 import grip
 
 struct SamplePacket: BinaryEncodable {
-    var type: SampleType                = .video
+    var type: CompressedSampleType      = .video
     var isSync: Bool                    = true
     var dependsOnOther: Bool            = false
     var earlierDisplayTimesAllows: Bool = false

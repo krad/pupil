@@ -2,7 +2,6 @@ import Foundation
 import morsel
 import memento
 import grip
-import photon
 import LoggerAPI
 import Dispatch
 
@@ -65,7 +64,7 @@ class MediaWriter {
         let settings = AudioSettings(sample)
         if let writer = self.mediawriter {
             writer.configure(settings: settings)
-            writer.append(sample: sample, type: .audio)
+            writer.append(sample: sample)
         }
     }
     
@@ -77,7 +76,7 @@ class MediaWriter {
         self.checkForVideoSettingChanges(sample: sample)
         self.digestForThumbnailProcessing(sample: sample)
         
-        writer.append(sample: sample, type: .video)
+        writer.append(sample: sample)
     }
     
     private func checkForVideoSettings(sample: VideoSample) {

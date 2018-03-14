@@ -16,7 +16,7 @@ do {
     let server = PupilServer()
 
     try server.start() {
-        Log.info("pupil \(version) running on port \(Config.port) o0[\(release_name)]0o.")
+        Log.info("pupil \(Version.tag) running on port \(Config.port) o0[\(Version.name)]0o.")
     }
 
     dispatchMain()
