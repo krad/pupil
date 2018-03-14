@@ -152,7 +152,10 @@ extension MediaWriter: FileWriterDelegate {
         self.cloud?.uploadAsync(file: url, deleteAfterUpload: false)
     }
     
-    func stop() { self.cloud?.finalize() }
+    func stop() {
+        self.cloud?.finalize()
+        self.mediawriter?.stop()
+    }
     
 }
 
